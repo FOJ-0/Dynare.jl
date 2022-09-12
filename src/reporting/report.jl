@@ -41,9 +41,11 @@ Page(t::Table) = Page([t])
 Page(g::Graph) = Page([g])
 
 function print(io::IO, p::Page)
+    print(io, "\\begin{centering}\n"
     for s in p.sections
         print(io, s)
     end
+    print(io, "\\end{centering}\n"
 end
 
 struct Report
