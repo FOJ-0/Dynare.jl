@@ -54,5 +54,10 @@ end;
 
 check;
 
+// test load_set_dynamic_auxiliary_variables with lead > 1
+histval;
+  k(0) = 10;
+end;
+
 stoch_simul(order=1);
 

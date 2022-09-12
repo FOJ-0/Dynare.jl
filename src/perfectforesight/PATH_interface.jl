@@ -3,6 +3,7 @@ using PATHSolver
 function mcp_perfectforesight_core!(perfect_foresight_ws::PerfectForesightWs,
                                     context::Context,
                                     periods::Int64,
+                                    initialvalues::Vector{Float64},
                                     y0::Matrix{Float64},
                                     dynamic_ws::DynamicWs)
     m = context.models[1]
@@ -13,7 +14,6 @@ function mcp_perfectforesight_core!(perfect_foresight_ws::PerfectForesightWs,
     dynamic_variables = dynamic_ws.dynamic_variables
     temp_vec = dynamic_ws.temporary_values
     steadystate = results.trends.endogenous_steady_state
-    initialvalues = steadystate
     terminalvalues = view(y0, :, periods)
     params = work.params
     JJ = perfect_foresight_ws.J
