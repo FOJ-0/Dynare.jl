@@ -11,12 +11,13 @@ export Context,
 RuntimeGeneratedFunctions.init(@__MODULE__)
 
 mutable struct ModFileInfo
-    modfilepath::String
+    endval_is_reset::Bool
     has_auxiliary_variables::Bool
     has_calib_smoother::Bool
     has_check::Bool
     has_deterministic_trend::Bool
     has_dynamic_file::Bool
+    has_endval::Bool
     has_histval::Bool
     has_histval_file::Bool
     has_initval::Bool
@@ -30,13 +31,17 @@ mutable struct ModFileInfo
     has_steadystate_file::Bool
     has_stoch_simul::Bool
     has_trends::Bool
+    initval_is_reset::Bool
+    modfilepath::String
+   
     function ModFileInfo(modfilepath_arg::String)
-        modfilepath = modfilepath_arg
+        endval_is_reset = false
         has_auxiliary_variables = false
         has_calib_smoother = false
         has_check = false
         has_deterministic_trend = false
         has_dynamic_file = false
+        has_endval = false
         has_histval = false
         has_histval_file = false
         has_initval = false
@@ -50,13 +55,16 @@ mutable struct ModFileInfo
         has_steadystate_file = false
         has_stoch_simul = false
         has_trends = false
+        initval_is_reset = false
+        modfilepath = modfilepath_arg
         new(
-            modfilepath,
+            endval_is_reset,
             has_auxiliary_variables,
             has_calib_smoother,
             has_check,
             has_deterministic_trend,
             has_dynamic_file,
+            has_endval,
             has_histval,
             has_histval_file,
             has_initval,
@@ -70,6 +78,8 @@ mutable struct ModFileInfo
             has_steadystate_file,
             has_stoch_simul,
             has_trends,
+            initval_is_reset,
+            modfilepath,
         )
     end
 end
@@ -718,32 +728,41 @@ Base.show(io::IO, s::Simulation) = show_field_value(s)
 
 struct Trends
     endogenous_steady_state::Vector{Float64}
+    endogenous_terminal_steady_state::Vector{Float64}
     endogenous_linear_trend::Vector{Float64}
     endogenous_quadratic_trend::Vector{Float64}
     exogenous_steady_state::Vector{Float64}
+    exogenous_terminal_steady_state::Vector{Float64}
     exogenous_linear_trend::Vector{Float64}
     exogenous_quadratic_trend::Vector{Float64}
     exogenous_det_steady_state::Vector{Float64}
+    exogenous_det_terminal_steady_state::Vector{Float64}
     exogenous_det_linear_trend::Vector{Float64}
     exogenous_det_quadratic_trend::Vector{Float64}
     function Trends(ny::Int64, nx::Int64, nxd::Int64)
         endogenous_steady_state = Vector{Float64}(undef, ny)
+        endogenous_terminal_steady_state = Vector{Float64}(undef, 0)
         endogenous_linear_trend = Vector{Float64}(undef, ny)
         endogenous_quadratic_trend = Vector{Float64}(undef, ny)
         exogenous_steady_state = Vector{Float64}(undef, nx)
+        exogenous_terminal_steady_state = Vector{Float64}(undef, 0)
         exogenous_linear_trend = Vector{Float64}(undef, nx)
         exogenous_quadratic_trend = Vector{Float64}(undef, nx)
         exogenous_det_steady_state = Vector{Float64}(undef, nxd)
+        exogenous_det_terminal_steady_state = Vector{Float64}(undef, 0)
         exogenous_det_linear_trend = Vector{Float64}(undef, nxd)
         exogenous_det_quadratic_trend = Vector{Float64}(undef, nxd)
         new(
             endogenous_steady_state,
+            endogenous_terminal_steady_state,
             endogenous_linear_trend,
             endogenous_quadratic_trend,
             exogenous_steady_state,
+            exogenous_terminal_steady_state,
             exogenous_linear_trend,
             exogenous_quadratic_trend,
             exogenous_det_steady_state,
+            exogenous_det_terminal_steady_state,
             exogenous_det_linear_trend,
             exogenous_det_quadratic_trend,
         )
