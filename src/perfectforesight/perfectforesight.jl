@@ -358,8 +358,7 @@ function perfectforesight_core!(
             m,
             periods,
             temp_vec,
-            perfect_foresight_ws.permutationsR,
-    )
+        )
 
     J! = make_pf_jacobian(
             DFunctions.dynamic_derivatives!,
@@ -418,7 +417,6 @@ function make_pf_residuals(
             m::Model,
             periods::Int,
             temp_vec::AbstractVector{T},
-            permutations::Vector{Tuple{Int64,Int64}},
         ) where T <: Real
     function f!(residuals::AbstractVector{T}, y::AbstractVector{T})
         get_residuals!(
@@ -433,9 +431,7 @@ function make_pf_residuals(
             m,
             periods,
             temp_vec,
-            permutations = permutations
         )
-        return residuals
     end
     return f!
 end
