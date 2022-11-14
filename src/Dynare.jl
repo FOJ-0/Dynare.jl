@@ -40,6 +40,7 @@ include("nonlinear/NLsolve.jl")
 using .NLsolve
 include("estimation/estimation.jl")
 export mh_estimation
+include("model_description.jl")
 
 export @dynare
 
