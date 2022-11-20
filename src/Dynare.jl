@@ -2,6 +2,7 @@ module Dynare
 
 using ExtendedDates
 using Logging
+using Pkg
 
 Base.@kwdef struct CommandLineOptions
     compilemodule::Bool = true
@@ -46,7 +47,7 @@ using .NLsolve
 include("estimation/estimation.jl")
 export mh_estimation
 
-export @dynare
+export @dynare, @precompile_model, @dynare1
 
 macro dynare(modfile_arg::String, args...)
     @info "Dynare version: $(module_version(Dynare))"
@@ -83,7 +84,79 @@ function get_modname(modfilename::String)
     return modname
 end
 
+macro precompile_model(modfile_arg::String, args...)
+    modname = get_modname(modfile_arg)
+    @info "$(now()): Starting @dynare $modfile_arg"
+    arglist = []
+    compilemodule = true
+    preprocessing = true
+    for (i, a) in enumerate(args)
+        if a == "nocompile"
+            compilemodule = false
+        elseif a == "nopreprocessing"
+            preprocessing = false
+        else
+            push!(arglist, a)
+        end
+    end
+    modfilename = modname * ".mod"
+    dynare_preprocess(modfilename, arglist)
+    update_package(modname)
+end
+
+macro dynare1(modfile_arg::String, args...)
+    @info "Dynare version: $(module_version(Dynare))"
+    modname = get_modname(modfile_arg)
+    modeldir = joinpath(modname, "model/julia")
+    make_module(modeldir)
+    !(modeldir in LOAD_PATH) && push!(LOAD_PATH, modeldir)
+    @eval using DynareFunctions
+    compilemodule = true
+    options = CommandLineOptions(compilemodule)
+    context = parser(modname, options)
+    return context
+end
+
+function make_module(directory::String)
+    files = readdir(directory)
+    if !("DynareFunctions.jl" in files)
+        open(joinpath(directory, "DynareFunctions.jl"), "w") do io
+            write(io, "module DynareFunctions\n")
+            for f in files
+                if f != "DynareFunctions.jl"
+                    write(io, "include(\"$f\")\n")
+                end
+            end
+            write(io, "end\n")
+        end
+    end
+end
+
+function update_package(modfilename)
+    functiondir = joinpath(modfilename, "model/julia")
+    projectdir = joinpath(functiondir, "project")
+    if !isdir(projectdir)
+        Pkg.generate(projectdir)
+        Pkg.develop(path=projectdir)
+        for f in readdir(functiondir)
+            ff = split(f, ".")
+            if ff[end] == "jl"
+                cp(joinpath(functiondir,f), joinpath(projectdir, "src", f), force=true)
+            end
+        end
+    else
+        for f in readdir(functiondir)
+            if mtime(f) > mtime(join(projectdir, "src", f))
+                ff = split(f, ".")
+                if ff[end] == "jl"
+                    cp(joinpath(functiondir,f), joinpath(projectdir, "src", f), force=true)
+                end
+            end
+        end
+    end
+end
 
 #include("precompile_Dynare.jl")
 #_precompile_()
 end # module
+

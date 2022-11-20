@@ -1,48 +1,13 @@
 module DFunctions
 
-using RuntimeGeneratedFunctions
 using SparseArrays
 using StatsFuns
 using TimeDataFrames
 
-RuntimeGeneratedFunctions.init(@__MODULE__)
-
 function load_model_functions(modelname::String)
-    function_root = "$(modelname)/model/julia/"
-    global SparseDynamicG1! = load_dynare_function("$(function_root)SparseDynamicG1!.jl")
-    global SparseDynamicG1TT! =
-        load_dynare_function("$(function_root)SparseDynamicG1TT!.jl")
-    global SparseDynamicG2! = load_dynare_function("$(function_root)SparseDynamicG2!.jl")
-    global SparseDynamicG2TT! =
-        load_dynare_function("$(function_root)SparseDynamicG2TT!.jl")
-    global SparseDynamicG3! = load_dynare_function("$(function_root)SparseDynamicG3!.jl")
-    global SparseDynamicG3TT! =
-        load_dynare_function("$(function_root)SparseDynamicG3TT!.jl")
-    global SparseDynamicResid! =
-        load_dynare_function("$(function_root)SparseDynamicResid!.jl")
-    global SparseDynamicResidTT! =
-        load_dynare_function("$(function_root)SparseDynamicResidTT!.jl")
-    global SparseStaticG1! = load_dynare_function("$(function_root)SparseStaticG1!.jl")
-    global SparseStaticG1TT! = load_dynare_function("$(function_root)SparseStaticG1TT!.jl")
-    global SparseStaticG2! = load_dynare_function("$(function_root)SparseStaticG2!.jl")
-    global SparseStaticG2TT! = load_dynare_function("$(function_root)SparseStaticG2TT!.jl")
-    global SparseStaticG3! = load_dynare_function("$(function_root)SparseStaticG3!.jl")
-    global SparseStaticG3TT! = load_dynare_function("$(function_root)SparseStaticG3TT!.jl")
-    global SparseStaticResid! =
-        load_dynare_function("$(function_root)SparseStaticResid!.jl")
-    global SparseStaticResidTT! =
-        load_dynare_function("$(function_root)SparseStaticResidTT!.jl")
-    global SparseDynamicParametersDerivatives! =
-        load_dynare_function("$(function_root)DynamicParamsDerivs.jl", head = 8, tail = 1)
-    global SparseStaticParametersDerivatives! =
-        load_dynare_function("$(function_root)StaticParamsDerivs.jl", head = 8, tail = 1)
-    global steady_state!
-    (steady_state!, analytical_variables) =
-        load_steady_state_function("$(function_root)SteadyState2.jl")
-    global dynamic_auxiliary_variables! =
-        load_dynare_function("$(function_root)DynamicSetAuxiliarySeries.jl")
-    global static_auxiliary_variables! =
-        load_dynare_function("$(function_root)SetAuxiliaryVariables.jl")
+    modeldir = "$(modelname)/model/julia/"
+    analytical_variables =
+        load_steady_state_function(joinpath(modeldir, "SteadyState2.jl"))
     return analytical_variables
 end
 
@@ -305,7 +270,7 @@ function static!(
     return nothing
 end
 
-
+#=
 function load_dynare_function(modname::String; head = 1, tail = 0)::Function
     if isfile(modname)
         fun = readlines(modname)
@@ -334,6 +299,7 @@ function load_set_dynamic_auxiliary_variables(modelname::String)
     exp1 = Meta.parse(join(source, "\n"))
     return (@RuntimeGeneratedFunction(exp1))
 end
+=#
 
 function load_steady_state_function(modname::String)
     if isfile(modname)
@@ -346,7 +312,7 @@ function load_steady_state_function(modname::String)
         fun[9] = "function steady_state!(ys_::Vector{T}, exo_::Vector{Float64}, params::Vector{Float64}) where T"
         expr = Meta.parse(join(fun[8:end-1], "\n"))
         analytical_variables = get_analytical_variables(expr)
-        return (@RuntimeGeneratedFunction(expr), analytical_variables)
+        return analytical_variables
     else
         return (nothing, [])
     end
