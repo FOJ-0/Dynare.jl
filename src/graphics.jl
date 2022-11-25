@@ -114,7 +114,7 @@ function plot(
 end
 
 function plot_irfs(irfs, model, symboltable, filepath)
-    x = 1:TimeDataFrames.nrow(first(irfs)[2])
+    x = 1:AxisArrayTables.nrow(first(irfs)[2])
     endogenous_names = get_endogenous_longname(symboltable)
     exogenous_names = get_exogenous_longname(symboltable)
     for i = 1:model.exogenous_nbr
@@ -226,7 +226,7 @@ function pltorg_0(number)
     return (lr, lc)
 end
 
-function plot(tdf::TimeDataFrame; label = (), title = "", filename = "")
+function plot(tdf::AxisArrayTable; label = (), title = "", filename = "")
     pl = Plots.plot(tdf, label = label, title = title)
     graph_display(pl)
     savefig(filename)

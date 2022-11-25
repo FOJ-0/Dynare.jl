@@ -47,22 +47,22 @@ function identify_period_type(period::AbstractString)
     end
 end
 
-function periodparse(period::AbstractString)::ExtendedDates.SimpleDate
+function periodparse(period::AbstractString)::ExtendedDates.Period
     period_type = identify_period_type(period)
     if period_type == YearDate
-        return parse(period_type, period, ExtendedDates.SimpleDateFormat("yY"))
+        return parse(period_type, period, ExtendedDates.PeriodFormat("yY"))
     elseif period_type == SemesterDate
-        return parse(period_type, period, ExtendedDates.SimpleDateFormat("ySs"))
+        return parse(period_type, period, ExtendedDates.PeriodFormat("ySs"))
     elseif period_type == QuarterDate
-        return parse(period_type, period, ExtendedDates.SimpleDateFormat("yQq"))
+        return parse(period_type, period, ExtendedDates.PeriodFormat("yQq"))
     elseif period_type == MonthDate
-        return parse(period_type, period, ExtendedDates.SimpleDateFormat("yMm"))
+        return parse(period_type, period, ExtendedDates.PeriodFormat("yMm"))
     elseif period_type == WeekDate
-        return parse(period_type, period, ExtendedDates.SimpleDateFormat("yWw"))
+        return parse(period_type, period, ExtendedDates.PeriodFormat("yWw"))
     elseif period_type == DayDate
-        return parse(period_type, period, ExtendedDates.SimpleDateFormat("y-m-d"))
+        return parse(period_type, period, ExtendedDates.PeriodFormat("y-m-d"))
     elseif period_type == UndatedDate
-        return parse(period_type, period, ExtendedDates.SimpleDateFormat("x"))
+        return parse(period_type, period, ExtendedDates.PeriodFormat("x"))
     else
         throw(ErrorException)
     end
@@ -90,10 +90,10 @@ function MyTimeDataFrame(filename)
         end
         break
     end
-    return TimeDataFrame(df, periods, continuous)
+    return AxisArrayTable(df, periods, continuous)
 end
 
-function is_continuous(periods::Vector{ExtendedDates.SimpleDate})
+function is_continuous(periods::Vector{ExtendedDates.Period})
     i = periods[1]
     for j = 2:length(periods)
         if periods[j] != i + 1

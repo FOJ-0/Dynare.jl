@@ -49,13 +49,13 @@ function check_predetermined_variables(symboltable, m, datanames)
     return auxiliary_variables_present
 end
 
-Delta(::Type{YearDate}) = Year
-Delta(::Type{SemesterDate}) = Semester
-Delta(::Type{QuarterDate}) = Quarter
-Delta(::Type{MonthDate}) = Month
-Delta(::Type{WeekDate}) = Week
-Delta(::Type{DayDate}) = Day
-Delta(::Type{UndatedDate}) = Undated
+Delta(::Type{YearSE}) = Year
+Delta(::Type{SemesterSE}) = Semester
+Delta(::Type{QuarterSE}) = Quarter
+Delta(::Type{MonthSE}) = Month
+Delta(::Type{WeekSE}) = Week
+Delta(::Type{DaySE}) = Day
+Delta(::Type{Undated}) = Int64
 """
     check_periods_options(options::Options; required_lags::Int64=0, required_leads::Int64=0)
 checks the following assertions if the fields exist:
@@ -112,7 +112,7 @@ function check_periods_options(options; required_lags::Int64 = 0, required_leads
 end
 
 function add_auxiliary_variables(
-    tdf::TimeDataFrame,
+    tdf::AxisArrayTable,
     symboltable::SymbolTable,
     endogenous_nbr::Int64,
     original_endogenous_nbr::Int64,
@@ -219,7 +219,7 @@ function initval_file!(context::Context, field::Dict{String,Any})
     else
         error("option datafile or series must be provided")
     end
-    tdf_nrow = TimeDataFrames.nrow(tdf)
+    tdf_nrow = AxisArrayTables.nrow(tdf)
 
     # if auxiliary variables are present, we need only one period of observations
     auxiliary_variables_present =

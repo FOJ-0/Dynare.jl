@@ -1,10 +1,10 @@
 import Base
+using AxisArrayTables
 using Distributions
-using LinearRationalExpectations
+import LinearRationalExpectations as LRE
 using RuntimeGeneratedFunctions
 using Suppressor
 using StatsFuns
-using TimeDataFrames
 using KalmanFilterTools: KalmanLikelihoodWs
 
 export Context,
@@ -696,7 +696,7 @@ Base.show(io::IO, m::Model) = show_field_value(m)
 struct Simulation
     name::String
     statement::String
-    data::TimeDataFrame
+    data::AxisArrayTable
 end
 
 Base.show(io::IO, s::Simulation) = show_field_value(s)
@@ -748,7 +748,7 @@ Base.show(io::IO, t::Trends) = show_field_value(t)
 
 struct ModelResults
     endogenous_steady_state::Vector{Float64}
-    irfs::Dict{Symbol,TimeDataFrame}
+    irfs::Dict{Symbol,AxisArrayTable}
     trends::Trends
     stationary_variables::Vector{Bool}
     exogenous_steady_state::Vector{Float64}
