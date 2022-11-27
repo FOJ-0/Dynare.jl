@@ -15,6 +15,7 @@ function permutation(permutations, colptr, rowval)
     rowval1 = copy(rowval)
     rowval2 = copy(rowval)
     k = 1
+    @show permutations
     for i in 1:length(colptr) - 1
         if colptr[i + 1] > colptr[i]
             vr1 = view(rowval1, colptr[i]:colptr[i+1]-1)
