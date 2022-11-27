@@ -114,11 +114,12 @@ struct PerfectForesightWs
         permutationsR = [(p[1], p[2]) for p in m.mcps]
         colptr = m.dynamic_g1_sparse_colptr
         rowval = m.dynamic_g1_sparse_rowval
-        (J, permutationsJ) = makeJacobian(colptr,
+        mcps = mcp_parse(m.mcps, context)
+        (J, permutations1) = makeJacobian(colptr,
                                           rowval,
                                           m.endogenous_nbr,
                                           periods,
-                                          m.mcps)
+                                          mcps)
         lb = Float64[]
         ub = Float64[]
         new(y, x, shocks, J, lb, ub, permutationsR, permutationsJ)
@@ -358,7 +359,8 @@ function perfectforesight_core!(
             m,
             periods,
             temp_vec,
-        )
+            perfect_foresight_ws.permutations,
+    )
 
     J! = make_pf_jacobian(
             DFunctions.dynamic_derivatives!,
@@ -417,6 +419,7 @@ function make_pf_residuals(
             m::Model,
             periods::Int,
             temp_vec::AbstractVector{T},
+            permutations::Vector{Tuple{Int64,Int64}},
         ) where T <: Real
     function f!(residuals::AbstractVector{T}, y::AbstractVector{T})
         get_residuals!(
@@ -431,7 +434,9 @@ function make_pf_residuals(
             m,
             periods,
             temp_vec,
+            permutations = permutations
         )
+        return residuals
     end
     return f!
 end
