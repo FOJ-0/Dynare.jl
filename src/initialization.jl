@@ -321,6 +321,11 @@ function initval!(context::Context, field::Dict{String,Any})
     symboltable = context.symboltable
     m = context.models[1]
     work = context.work
+    initval_endogenous = zeros(m.endogenous_nbr)
+    initval_exogenous = zeros(m.exogenous_nbr)
+    initval_exogenous_det = zeros(m.exogenous_deterministic_nbr)
+    xs = [Endogenous, Exogenous, ExogenousDeterministic]
+    xw = [initval_endogenous, initval_exogenous, initval_exogenous_det]
     work.initval_endogenous = zeros(m.endogenous_nbr, 1)
     work.initval_exogenous = zeros(m.exogenous_nbr, 1)
     work.initval_exogenous_deterministic = zeros(m.exogenous_deterministic_nbr, 1)
@@ -354,20 +359,20 @@ function endval!(context::Context, field::Dict{String,Any})
     endval_exogenous_det = zeros(m.exogenous_deterministic_nbr)
     xs = [Endogenous, Exogenous, ExogenousDeterministic]
     xw = [endval_endogenous, endval_exogenous, endval_exogenous_det]
-    work.endval_endogenous = zeros(m.endogenous_nbr,1)
-    work.endval_exogenous = zeros(m.exogenous_nbr,1)
-    work.endval_exogenous_deterministic = zeros(m.exogenous_deterministic_nbr,1)
+    work.endval_endogenous = zeros(m.endogenous_nbr, 1)
+    work.endval_exogenous = zeros(m.exogenous_nbr, 1)
+    work.endval_exogenous_deterministic = zeros(m.exogenous_deterministic_nbr, 1)
     for v in field["vals"]
         s = symboltable[v["name"]::String]
         typ = s.symboltype
         k = s.orderintype::Int64
         value = dynare_parse_eval(v["value"]::String, context, xs = xs, xw = xw)
         if typ == Endogenous
-            work.endval_endogenous[k] = value
+            work.endval_endogenous[k, 1] = value
         elseif typ == Exogenous
-            work.endval_exogenous[k] = value
+            work.endval_exogenous[k, 1] = value
         elseif typ == ExogenousDeterministic
-            work.endval_exogenous_determinisitic[k] = value
+            work.endval_exogenous_determinisitic[k, 1] = value
         else
             throw(error("$(v["name"]) can't be set in ENDVAL"))
         end
