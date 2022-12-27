@@ -309,7 +309,8 @@ end
 function load_dynare_function(modname::String; head = 1, tail = 0)::Function
     if isfile(modname)
         fun = readlines(modname)
-        return (@RuntimeGeneratedFunction(Meta.parse(join(fun[head:end-tail], "\n"))))
+        vfun = view(fun, head:size(fun, 1) - tail)
+        return (@RuntimeGeneratedFunction(Meta.parse(join(vfun, "\n"))))
     else
         return (x...) -> nothing
     end
@@ -351,11 +352,13 @@ function get_analytical_variables(expr::Expr)
     @assert  block.head == :block
     indices = Int64[]
     for a in block.args
-        if (isa(a, Expr)
-            && a.head == :(=)
-            && isa(a.args[1], Expr)
-            && a.args[1].args[1] == :ys_)
-            push!(indices, a.args[1].args[2])
+        @views begin
+            if (isa(a, Expr)
+                && a.head == :(=)
+                && isa(a.args[1], Expr)
+                && a.args[1].args[1] == :ys_)
+                push!(indices, a.args[1].args[2])
+            end
         end
     end
 
