@@ -182,6 +182,10 @@ function updateJacobian!(J::SparseMatrixCSC,
     offset = 1
     rx = 1:exogenous_nbr
     @views begin
+        @show endogenous_nbr
+        @show size(dynamic_variables)
+        @show size(initialvalues)
+        @show size(endogenous)
         copyto!(dynamic_variables, initialvalues)
         copyto!(dynamic_variables, endogenous_nbr + 1, endogenous, 1, 2*endogenous_nbr)
         G1!(temporary_var, nzval, dynamic_variables, exogenous[rx], params, steady_state)

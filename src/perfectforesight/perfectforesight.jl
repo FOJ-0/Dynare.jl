@@ -146,10 +146,11 @@ function perfect_foresight_solver!(context, field)
                            m.dynamic_g1_sparse_colptr,
                            m.dynamic_g1_sparse_rowval)
 
-    perfect_foresight_ws = PerfectForesightWs(context, periods)
-    X = perfect_foresight_ws.shocks
     initial_values = get_dynamic_initialvalues(context)
     terminal_values = get_dynamic_terminalvalues(context, periods)
+    perfect_foresight_ws = PerfectForesightWs(context, periods)
+    X = perfect_foresight_ws.shocks
+    @show periods
     guess_values = perfect_foresight_initialization!(
         context,
         periods,
@@ -186,6 +187,7 @@ function get_dynamic_initialvalues(context::Context)
     endo_nbr = context.models[1].endogenous_nbr 
     work = context.work
     modfileinfo = context.modfileinfo
+    trends = context.results.model_results[1].trends
     y0 = zeros(context.models[1].endogenous_nbr)
     if modfileinfo.has_histval
         @views for i in eachindex(skipmissing(work.histval[lastindex(work.histval, 1), 1:endo_nbr]))
@@ -198,7 +200,6 @@ function get_dynamic_initialvalues(context::Context)
         end
         return y0
     else
-        trends = context.results.model_results[1].trends
         if isempty(trends.endogenous_steady_state)
             compute_steady_state!(context, Dict{String,Any}())
         end
@@ -238,6 +239,7 @@ function perfect_foresight_initialization!(
     dynamic_ws::DynamicWs,
 )
     modfileinfo = context.modfileinfo
+    model = context.models[1]
     trends = context.results.model_results[1].trends
     if algo == initvalfile
         initval = work.initval
@@ -245,14 +247,33 @@ function perfect_foresight_initialization!(
     elseif algo == linearinterpolation
     elseif algo == steadystate 
         if isempty(trends.endogenous_steady_state)
-            compute_steady_state!(context, Dict{String,Any}())
-        end
-        if modfileinfo.has_endval
-            x = trends.endogenous_terminal_steady_state
+            if modelinfo.has_initval
+                set_or_zero!(trends.endogenous_steady_state,
+                 work.initval_endogenous,
+                 model.endogenous_nbr)
+                set_or_zero!(trends.exogenous_steady_state,
+                 work.initval_exogenous,
+                 model.exogenous_nbr)
+            end
+            if modfileinfo.has_endval
+                set_or_zero!(trends.endogenous_terminal_steady_state,
+                     work.endval_endogenous,
+                     model.endogenous_nbr)
+                set_or_zero!(trends.exogenous_terminal_steady_state,
+                     work.endval_exogenous,
+                     model.exogenous_nbr)
+            end
         else
-            x = trends.endogenous_steady_state
-        end
+            if modfileinfo.has_endval
+                x = trends.endogenous_terminal_steady_state
+            else
+                x = trends.endogenous_steady_state
+            end
+        end 
+        @show periods
+        @show size(x)
         guess_values = repeat(x, periods)
+        @show size(guess_values)
     elseif algo == firstorder
         guess_values = simul_first_order!(context, periods, exogenous, dynamic_ws)
     end

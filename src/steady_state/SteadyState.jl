@@ -112,6 +112,7 @@ function steady!(context::Context, field::Dict{String,Any})
                      work.endval_exogenous,
                      model.exogenous_nbr)
     end
+    @show size(context.results.model_results[1].trends.endogenous_terminal_steady_state)
     compute_steady_state!(context, field)
     if options.display
         if isempty(trends.endogenous_terminal_steady_state)
