@@ -95,6 +95,7 @@ function steady!(context::Context, field::Dict{String,Any})
     model = context.models[1]
     modfileinfo = context.modfileinfo
     options = SteadyOptions(get(field, "options", field))
+    @show options
     trends = context.results.model_results[1].trends
     work = context.work
     
@@ -159,7 +160,7 @@ function compute_steady_state!(context::Context, field::Dict{String,Any})
         x0 = zeros(model.endogenous_nbr)
         !isempty(trends.endogenous_steady_state) &&
             (x0 .= Float64.(trends.endogenous_steady_state))
-        solve_ramsey_steady_state!(context, x0, options)
+        !options.nocheck && solve_ramsey_steady_state!(context, x0, options)
     else
         # initial steady state
         exogenous = zeros(model.exogenous_nbr)
@@ -177,8 +178,9 @@ function compute_steady_state!(context::Context, field::Dict{String,Any})
             x0 = zeros(model.endogenous_nbr)
             !isempty(trends.endogenous_terminal_steady_state) &&
                 (x0 .= Float64.(trends.endogenous_terminal_steady_state))
-            trends.endogenous_terminal_steady_state .=
-                solve_steady_state!(context, x0, exogenous, options)
+            @show options.nocheck    
+            !options.nocheck && (trends.endogenous_terminal_steady_state .=
+                solve_steady_state!(context, x0, exogenous, options))
         end
     end
 end

@@ -201,7 +201,7 @@ function get_dynamic_initialvalues(context::Context)
         return y0
     else
         if isempty(trends.endogenous_steady_state)
-            compute_steady_state!(context, Dict{String,Any}())
+            error("No initial values provided for the simulation: instruction histval, initval_file or steady is missing")
         end
         return trends.endogenous_steady_state
     end
@@ -219,7 +219,7 @@ function get_dynamic_terminalvalues(context::Context, periods)
     else
         trends = context.results.model_results[1].trends
         if isempty(trends.endogenous_steady_state)
-            compute_steady_state!(context, Dict{String,Any}())
+            error("No terminal values provided for the simulation: instrution initval_file or steady is missing")
         end
         if modfileinfo.has_endval
             return trends.endogenous_terminal_steady_state
