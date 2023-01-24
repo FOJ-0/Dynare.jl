@@ -113,7 +113,6 @@ function steady!(context::Context, field::Dict{String,Any})
                      work.endval_exogenous,
                      model.exogenous_nbr)
     end
-    @show size(context.results.model_results[1].trends.endogenous_terminal_steady_state)
     compute_steady_state!(context, field)
     if options.display
         if isempty(trends.endogenous_terminal_steady_state)
@@ -156,7 +155,6 @@ function compute_steady_state!(context::Context, field::Dict{String,Any})
                                options.tolf)
         end
     elseif context.modfileinfo.has_ramsey_model
-        @show "ramsey"
         x0 = zeros(model.endogenous_nbr)
         !isempty(trends.endogenous_steady_state) &&
             (x0 .= Float64.(trends.endogenous_steady_state))
@@ -299,7 +297,7 @@ function solve_steady_state_!(context::Context,
     end
 
     of = OnceDifferentiable(f!, J!, vec(x0), residuals, A)
-    result = nlsolve(of, x0; method = :robust_trust_region, show_trace = true, ftol = options.tolf)
+    result = nlsolve(of, x0; method = :robust_trust_region, show_trace = false, ftol = options.tolf)
     @debug result
     if converged(result)
         return result.zero

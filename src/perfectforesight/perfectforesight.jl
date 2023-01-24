@@ -150,7 +150,6 @@ function perfect_foresight_solver!(context, field)
     terminal_values = get_dynamic_terminalvalues(context, periods)
     perfect_foresight_ws = PerfectForesightWs(context, periods)
     X = perfect_foresight_ws.shocks
-    @show periods
     guess_values = perfect_foresight_initialization!(
         context,
         periods,
@@ -270,10 +269,7 @@ function perfect_foresight_initialization!(
                 x = trends.endogenous_steady_state
             end
         end 
-        @show periods
-        @show size(x)
         guess_values = repeat(x, periods)
-        @show size(guess_values)
     elseif algo == firstorder
         guess_values = simul_first_order!(context, periods, exogenous, dynamic_ws)
     end
