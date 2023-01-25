@@ -12,6 +12,7 @@ using LinearRationalExpectations
 const LRE = LinearRationalExpectations
 
 using KalmanFilterTools
+using MKL
 using Pardiso
 
 include("utils.jl")
