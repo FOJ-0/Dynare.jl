@@ -47,7 +47,7 @@ macro trustregiontrace(stepnorm)
     )
 end
 
-function dogleg!(p, p_c, p_i, r, d, J, delta::Real)
+function dogleg!(p, p_c, p_i, r, d, J, linsolve, delta::Real)
     @debug "$(now()): start dogleg!"
     T = eltype(d)
     #Jbal = copy(J)
@@ -63,9 +63,7 @@ function dogleg!(p, p_c, p_i, r, d, J, delta::Real)
         =#
         #        copyto!(p_i, J \ vec(r)) # Gauss-Newton step
         @debug "$(now()): start J\vec(r)"
-        #copyto!(p_i, (J \ vec(r)) ./ d)
-        F = lu(J)
-        ldiv!(p_i, F, vec(r))
+        linsolve(p_i, J, vec(r))
         @debug "$(now()): end J\vec(r)"
     catch e
         @show "singular $e"
@@ -141,6 +139,7 @@ function robust_trust_region_(
     extended_trace::Bool,
     factor::Real,
     autoscale::Bool,
+    linsolve,
     cache = NewtonTrustRegionCache(df),
 ) where {T}
     copyto!(cache.x, initial_x)
@@ -204,10 +203,9 @@ function robust_trust_region_(
 
     while !stopped && !converged && it < iterations
         it += 1
-
         try
             # Compute proposed iteration step
-            dogleg!(cache.p, cache.p_c, cache.pi, cache.r, cache.d, jacobian(df), delta)
+            dogleg!(cache.p, cache.p_c, cache.pi, cache.r, cache.d, jacobian(df), linsolve, delta)
             copyto!(cache.xold, cache.x)
             cache.x .+= cache.p
             value!(df, cache.x)
@@ -291,9 +289,10 @@ function robust_trust_region(
     show_trace::Bool,
     extended_trace::Bool,
     factor::Real,
-    autoscale::Bool,
+    autoscale::Bool;
     cache = NewtonTrustRegionCache(df),
-) where {T}
+    linsolve = (x, A, b) -> copyto!(x, A\b) where T
+    ) where {T}
     robust_trust_region_(
         df,
         initial_x,
@@ -305,6 +304,7 @@ function robust_trust_region(
         extended_trace,
         convert(real(T), factor),
         autoscale,
+        linsolve,
         cache,
     )
 end

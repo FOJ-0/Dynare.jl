@@ -115,7 +115,7 @@ struct PerfectForesightWs
         colptr = m.dynamic_g1_sparse_colptr
         rowval = m.dynamic_g1_sparse_rowval
         mcps = mcp_parse(m.mcps, context)
-        (J, permutations1) = makeJacobian(colptr,
+        (J, permutationsJ) = makeJacobian(colptr,
                                           rowval,
                                           m.endogenous_nbr,
                                           periods,
@@ -359,7 +359,7 @@ function perfectforesight_core!(
             m,
             periods,
             temp_vec,
-            perfect_foresight_ws.permutations,
+            perfect_foresight_ws.permutationsR,
     )
 
     J! = make_pf_jacobian(
@@ -388,8 +388,13 @@ function perfectforesight_core!(
     df = OnceDifferentiable(f!, J!, y0, residuals, JJ)
     @debug "$(now()): start nlsolve"
 
-
-    res = nlsolve(df, y0, method = :robust_trust_region, show_trace = false, ftol=cbrt(eps()))
+    result = similar(y0)
+    if length(y0) > 1e5
+        ps = MKLPardisoSolver()
+        res = nlsolve(df, y0, method = :robust_trust_region, show_trace = true, ftol=cbrt(eps()), linsolve = (x, A, b) -> Pardiso.solve!(ps, x, A, b))    
+    else
+        res = nlsolve(df, y0, method = :robust_trust_region, show_trace = false, ftol=cbrt(eps()))
+    end
     print_nlsolver_results(res)
     @debug "$(now()): end nlsolve"
     endogenous_names = get_endogenous_longname(context.symboltable)
