@@ -135,6 +135,8 @@ function compute_steady_state!(context::Context, field::Dict{String,Any})
         length(work.analytical_steadystate_variables) ==
         endogenous_nbr
     )
+        isempty(trends.endogenous_steady_state) && resize!(trends.endogenous_steady_state, endogenous_nbr)
+        isempty(trends.exogenous_steady_state) && (trends.exogenous_steady_state = zeros(model.exogenous_nbr))
         evaluate_steady_state!(trends.endogenous_steady_state,
                                trends.exogenous_steady_state,
                                work.params)
