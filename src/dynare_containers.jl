@@ -763,7 +763,7 @@ struct ModelResults
     exogenous_deterministic_steady_state::Vector{Float64}
     linearrationalexpectations::LinearRationalExpectationsResults
     simulations::Vector{Simulation}
-    smoother::Dict{String,Matrix{Float64}}
+    smoother
 end
 
 Base.show(io::IO, r::ModelResults) = show_field_value(r)
