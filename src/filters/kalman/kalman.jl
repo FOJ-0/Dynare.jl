@@ -204,15 +204,6 @@ function calib_smoother_core!(contex::Context, options::CalibSmootherOptions)
         )
         a0 = F.Z * a0
         alphah = F.Z * alphah
-        display(F.Z*T*transpose(F.Z))
-        display(F.Z*kws.KDK0)
-        display(tZ*transpose(F.Z))
-        display(F.Z*kws.L*transpose(F.Z))
-        @show kws.r
-        @show F.Z*kws.r
-        #display(F.Z*P[:,:,1]*transpose(F.Z))
-        # alphah = F.Z * vP * kws.r
-        #        = F.Z * vP * F.Z' * F.Z kws.r
     end 
     
     variables = [Symbol(v) for v in endogenous_vars]
