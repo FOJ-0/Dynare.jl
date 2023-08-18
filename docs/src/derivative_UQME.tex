@@ -29,8 +29,13 @@ Can be reorganized as
   + (AX + B)\frac{\partial X}{\partial z} +\frac{\partial A}{\partial z}X^2 
   + \frac{\partial B}{\partial z}X + \frac{\partial C}{\partial z} = 0
 \]
+or
+\[
+  D\frac{\partial X}{\partial z}E
+  + F\frac{\partial X}{\partial z} + G =0
+\]
 
-This can be solved with GeneralizedSylvesterSolver.jl. Function
+This can be solved with GeneralizedSylvesterSolver.jl. Function\\
 \verb+generalized_sylvester_solver!(a,b,c,d,1,ws)+ solves
 \[
   ax + bxc = d
@@ -41,12 +46,22 @@ where
   b &= A\\
   c &= X\\
   d &= \frac{\partial A}{\partial z}X^2 
-  + \frac{\partial B}{\partial z}X + \frac{\partial C}{\partial z}
+      + \frac{\partial B}{\partial z}X + \frac{\partial C}{\partial z}\\
 \end{align*}
-and
-\begin{verbatim}
-ws = GeneralizedSylvesterWs(n, n, n, 1)
-\end{verbatim}
+and \verb+ws = GeneralizedSylvesterWs(n, n, n, 1)+.
+
+The solution for the unknown matrix $x=\frac{\partial X}{\partial z}$
+is returned into \verb+d+.\\ 
+\verb+generalized_sylvester_solver+ transforms the problem as
+\[
+  x + a^{-1}bxc = a^{-1}d,
+\]  
+vectorizes it:
+\[
+  (I + c'\otimes(a^{-1}b)x = vec(a^{-1}d)
+\]
+and solves for $x$ with a special algorithm that never forms the Kronecker
+product explicitly.
 
 \end{document}
 
