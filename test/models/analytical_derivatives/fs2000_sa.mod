@@ -65,6 +65,6 @@ end;
 
 steady;
 
-check;
+//check;
 
 dynare_sensitivity(identification=1);

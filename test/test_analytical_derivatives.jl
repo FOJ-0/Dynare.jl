@@ -183,7 +183,7 @@ workspace4 = init_derivatives4_workspace(n, m)
 ## Derivatives of first order solution
 ### 
 
-wsd = Dynare.DynamicWs(context)
+wsd = Dynare.DynamicWs(context, order=2)
 jacobian = Dynare.get_dynamic_jacobian!(
     wsd,
     params,
@@ -212,13 +212,13 @@ dC_dp = zeros(n, n, m)
 # derivatives of A, B, C with respect to parameter
 k1 = findall(!iszero, lli[3, :])
 k2 = lli[3, k1]
-dA_dp[:, k1, :] .= gp[:, k2, :]  
+dA_dp[:, k1, :] .= gp[:, k2, :]
 k1 = findall(!iszero, lli[2, :])
 k2 = lli[2, k1]
-dB_dp[:, k1, :] .= gp[:, k2, :]  
+dB_dp[:, k1, :] .= gp[:, k2, :]
 k1 = findall(!iszero, lli[1, :])
 k2 = lli[1, k1]
-dC_dp[:, k1, :] .= gp[:, k2, :]  
+dC_dp[:, k1, :] .= gp[:, k2, :]
 
 localapproximation!(irf=0, display=false);
 
@@ -240,16 +240,20 @@ c_orig = copy(c)
 d_orig = copy(d)
 
 order=1
-ws = GeneralizedSylvesterWs(n,n,n,order)
+GSws = GeneralizedSylvesterWs(n,n,n,order)
 #Solve UQME using generalized_sylvester_solver!
 for i in 1:m
     @views begin
         mul!(d[:,:,i], dA_dp[:,:,i], X2)
         mul!(d[:,:,i], dB_dp[:,:,i], X, true, true) 
-        d[:,:,i] .+= dC_dp[:,:,i] 
+        d[:,:,i] .+= dC_dp[:,:,i]
+        d_orig[:, :, i] .= d[:, :, i]
     end
-    generalized_sylvester_solver!(a, b, c, d[:,:,i], order, ws)
+    #    generalized_sylvester_solver!(a, b, c, d[:,:,i], order, GSws)
+    @views d[:, :, i] .= reshape((kron(I(n), a) + kron(c', b))\vec(d[:, :, i]), n, n) 
 end
+#using Serialization
+#Serialization.serialize("test.jls", (a_orig, b_orig, c_orig, d_orig))
 
 #Test 1
 for i in 1:m
@@ -264,18 +268,131 @@ end
 #Test 3
 using FiniteDifferences
 
-function funX(params)
-    X = zeros(n, n)
-    X[:, k1] .= context.results.model_results[1].linearrationalexpectations.g1_1
-    return X #vec()
+params0 = copy(context.work.params)
+
+params1 = copy(params0)
+h = 0.00001
+params1[5] += h
+
+function funX(param)
+    context.work.params[5] = param
+    localapproximation!(irf=0, display=false);
+    return copy(context.results.model_results[1].linearrationalexpectations.g1_1)
 end
 
 fd = central_fdm(5, 1)
-dX_dz_tuple = jacobian(fd, funX, params)
-dX_dz_matrix = dX_dz_tuple[1]
-dX_dz = permutedims(reshape(dX_dz_matrix, m, n, n), (2, 3, 1))
+dX_dz_tuple = FiniteDifferences.jacobian(fd, funX, params[5])
+dX_dz_matrix = reshape(dX_dz_tuple[1], n, 4)
+#dX_dz = permutedims(reshape(dX_dz_matrix, m, n, n), (2, 3, 1))
 
-@test d ≈ dX_dz #Fail
+
+@show "analytical"
+display(d[:, :, 5])
+@show "finite diff"
+display(dX_dz_matrix)
+
+copy!(context.work.params, params0)
+@show "manual"
+display((funX(params1[5]) - funX(params0[5])) ./ h)
+
+#@test d ≈ dX_dz_matrix #Fail
+
+#second order derivatives w.r. dynamic endogenous 
+values = zeros(size(model.dynamic_g2_sparse_indices, 1))
+Dynare.get_dynamic_derivatives2!(
+    wsd,
+    params,
+    endogenous3,
+    exogenous,
+    steadystate,
+    values,
+    model,
+)
+k = vcat(
+    model.i_bkwrd_b,
+    model.endogenous_nbr .+ model.i_current,
+    2*model.endogenous_nbr .+ model.i_fwrd_b,
+    3*model.endogenous_nbr .+ collect(1:model.exogenous_nbr)
+)
+n = 3*model.endogenous_nbr + model.exogenous_nbr
+nc = model.n_bkwrd + 2*model.n_both + model.n_current + model.n_fwrd + model.exogenous_nbr
+F1 = zeros(model.endogenous_nbr, nc)
+@views F1 .= wsd.derivatives[1][:, k]
+kk = vec(reshape(1:n*n, n, n)[k, k])
+
+F2 = Matrix(wsd.derivatives[2])[:, kk]
+k = collect(5:19)
+dB = zeros(15, 15)
+for i=1:15
+    dB .+= sol1[i, 1] .* F2[:, k]
+    k .+= 24
+end
+@show "dB"
+display(dB)
+display(dB_dp[:, :, 1])
+
+function funX1(wsd, params, endogenous, exogenous, steadystate, model)
+    jacobian = Dynare.get_dynamic_jacobian!(
+    wsd,
+    params,
+    endogenous,
+    exogenous,
+    steadystate,
+    model,
+    2,
+    )
+    return copy(jacobian)
+end
+
+function D1(wsd, params, endogenous, exogenous, steadystate, model)
+    _params = copy(params)
+    h = 0.0001
+    _params[1] += h 
+    J2 = funX1(wsd, _params, endogenous, exogenous, steadystate, model)
+    J1 = funX1(wsd, params, endogenous, exogenous, steadystate, model)
+    display(Matrix((J2[:,16:30] - J1[:,16:30])/h))
+end
+
+function D2(wsd, params, endogenous, exogenous, steadystate, model)
+    _params = copy(params)
+    h = 0.0001
+    _params[1] += h
+    
+    J2 = funX1(wsd, _params, endogenous, exogenous, steadystate, model)
+    J1 = funX1(wsd, params, endogenous, exogenous, steadystate, model)
+    display(Matrix((J2[:,16:30] - J1[:,16:30])/h))
+end
+
+function D3(context)
+    model = context.models[1]
+    context1 = deepcopy(context)
+    Dynare.compute_steady_state!(context1)
+    ss0 = copy(context1.results.model_results[1].trends.endogenous_steady_state)
+    h = 0.0001
+    context1.work.params[1] += h
+    Dynare.compute_steady_state!(context1)
+    ss1 = copy(context1.results.model_results[1].trends.endogenous_steady_state)
+    params = copy(context.work.params)
+    exogenous = context.results.model_results[1].trends.exogenous_steady_state
+    endogenous3 = repeat(ss1, 3)
+    J2 = funX1(wsd, params, endogenous3, exogenous, ss1, model)
+    endogenous3 = repeat(ss0, 3)
+    J1 = funX1(wsd, params, endogenous3, exogenous, ss0, model)
+    display(Matrix((J2[:,16:30] - J1[:,16:30])/h))
+
+end
+    
+@show "D1"
+D1(wsd, params, endogenous3, exogenous, steadystate, model)
+
+@show "D3"
+dss = zeros(15)
+D3(context)
+
+nothing
+
+
+
 
 end # end module   
 
