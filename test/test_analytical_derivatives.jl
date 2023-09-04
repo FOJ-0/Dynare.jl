@@ -320,12 +320,15 @@ F1 = zeros(model.endogenous_nbr, nc)
 @views F1 .= wsd.derivatives[1][:, k]
 kk = vec(reshape(1:n*n, n, n)[k, k])
 
-F2 = Matrix(wsd.derivatives[2])[:, kk]
-k = collect(5:19)
+
+F2 = Matrix(wsd.derivatives[2])
+k = collect(16:30)
 dB = zeros(15, 15)
-for i=1:15
-    dB .+= sol1[i, 1] .* F2[:, k]
-    k .+= 24
+for i=1:3
+    for j = 1:15
+        dB .+= sol1[j, 1] .* F2[:, k]
+        k .+= 47
+    end
 end
 @show "dB"
 display(dB)
