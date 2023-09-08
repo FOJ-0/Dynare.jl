@@ -426,7 +426,6 @@ function localapproximation!(; context::Context = context,
     ncol = m.n_bkwrd + m.n_current + m.n_fwrd + 2 * m.n_both
     tmp_nbr = m.dynamic_tmp_nbr
     ws = DynamicWs(context, order=options.order)
-    @show options.order
     stoch_simul_core!(context, ws, options)
 end
 
