@@ -234,6 +234,13 @@ c = X
 X2 = X*X
 d = zeros(n, n, m)
 
+    @show "a"
+    display(a)
+    @show "b"
+    display(b)
+    @show "c"
+    display(c)
+
 a_orig = copy(a)
 b_orig = copy(b)
 c_orig = copy(c)
@@ -322,16 +329,18 @@ kk = vec(reshape(1:n*n, n, n)[k, k])
 
 
 F2 = Matrix(wsd.derivatives[2])
-k = collect(16:30)
-dB = zeros(15, 15)
-for i=1:3
-    for j = 1:15
-        dB .+= sol1[j, 1] .* F2[:, k]
-        k .+= 47
+dABC = zeros(15, 45, 7)
+for p in 1:7
+    k = collect(1:45)
+    for i=1:3
+        for j = 1:15
+            dABC[:, :, p] .+= sol1[j, p] .* F2[:, k]
+            k .+= 47
+        end
     end
 end
 @show "dB"
-display(dB)
+display(dABC[:,1:15, 1])
 display(dB_dp[:, :, 1])
 
 function funX1(wsd, params, endogenous, exogenous, steadystate, model)
@@ -381,7 +390,8 @@ function D3(context)
     J2 = funX1(wsd, params, endogenous3, exogenous, ss1, model)
     endogenous3 = repeat(ss0, 3)
     J1 = funX1(wsd, params, endogenous3, exogenous, ss0, model)
-    display(Matrix((J2[:,16:30] - J1[:,16:30])/h))
+#    display(Matrix((J2[:,16:30] - J1[:,16:30])/h))
+    display(Matrix((J2[:,1:15] - J1[:,1:15])/h))
 
 end
     
