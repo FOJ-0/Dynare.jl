@@ -36,7 +36,9 @@ where
   \mathbb{E}_t\left\{\epsilon_t\epsilon_\tau'\right\} &= 0\;\;\;
   t\ne\tau
 \end{align*}
-      
+$y_t$ is a vector of $n$ endogenous variables and $\epsilon_t$, a
+vector of $m$ exogenous shocks.
+
 \section{Derivatives of the steady state}
 
 The steady state $\bar y$ satisfies
@@ -56,7 +58,7 @@ The first order approximation of the model is written
 \[
 A \mathbb{E}_t\hat y_{t+1} + B \hat y_t + C \hat y_{t-1} + Du_t = 0
 \]
-where
+where $\hat y_t=y_t - \bar y$ and
 \begin{align*}
   A &= \left.\frac{\partial f}{\partial y_{t+1}} \right|_{\bar y}\\
   B &= \left.\frac{\partial f}{\partial y_t} \right|_{\bar y}\\
@@ -66,23 +68,23 @@ where
 Then,
 \begin{align*}
   A &= \frac{\partial^2 f}{\partial y_{t+1}\partial \theta} + \left(\frac{\partial^2
-  f}{\partial y_{t+1}\partial y_{t+1}} +\frac{\partial f}{\partial y_t\partial y_{t+1}} + \frac{\partial
-      f}{\partial y_{t-1}\partial y_{t+1}}\right)\left(I\otimes \frac{\partial \bar
+  f}{\partial y_{t+1}\partial y_{t+1}} +\frac{\partial^2 f}{\partial y_t\partial y_{t+1}} + \frac{\partial^2
+      f}{\partial y_{t-1}\partial y_{t+1}}\right)\left(e_n\otimes \frac{\partial \bar
     y}{\partial \theta}\right)\\ 
   B &= \frac{\partial^2 f}{\partial y_t\partial \theta} + \left(\frac{\partial^2
-  f}{\partial y_{t+1}\partial y_t} +\frac{\partial f}{\partial y_t\partial y_t} + \frac{\partial
-      f}{\partial y_{t-1}\partial y_t}\right)\left(I\otimes \frac{\partial \bar
+  f}{\partial y_{t+1}\partial y_t} +\frac{\partial^2 f}{\partial y_t\partial y_t} + \frac{\partial^2
+      f}{\partial y_{t-1}\partial y_t}\right)\left(e_n\otimes \frac{\partial \bar
     y}{\partial \theta}\right)\\ 
   C &= \frac{\partial^2 f}{\partial y_{t-1}\partial \theta} + \left(\frac{\partial^2
-  f}{\partial y_{t+1}\partial y_{t-1}} +\frac{\partial f}{\partial y_t\partial y_{t-1}} + \frac{\partial
-      f}{\partial y_{t-1}\partial y_{t-1}}\right)\left((I\otimes \frac{\partial \bar
+  f}{\partial y_{t+1}\partial y_{t-1}} +\frac{\partial^2 f}{\partial y_t\partial y_{t-1}} + \frac{\partial^2
+      f}{\partial y_{t-1}\partial y_{t-1}}\right)\left((e_n\otimes \frac{\partial \bar
     y}{\partial \theta}\right)\\ 
   D &= \frac{\partial^2 f}{\partial u_t\partial \theta} + \left(\frac{\partial^2
-  f}{\partial y_{t+1}\partial u_t} +\frac{\partial f}{\partial y_t\partial u_t} + \frac{\partial
-      f}{\partial y_{t-1}\partial u_t}\right)\left(I\otimes \frac{\partial \bar
+  f}{\partial y_{t+1}\partial u_t} +\frac{\partial^2 f}{\partial y_t\partial u_t} + \frac{\partial^2
+      f}{\partial y_{t-1}\partial u_t}\right)\left(e_n\otimes \frac{\partial \bar
     y}{\partial \theta}\right)
 \end{align*}
-
+where $e_n$ is a 1-vector of size $n$.
 \section{Derivatives of the solution of the UQME}
 
 We assume that the solution of the first order approximation of the
